@@ -1,0 +1,398 @@
+import random
+import time
+import logging
+import copy
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+class MentalState:
+    def __init__(self):
+        self.beliefs = {}     # Dictionary to store beliefs (e.g., "the sky is blue": True)
+        self.desires = []     # List to store desires (e.g., "eat pizza")
+        self.intentions = []  # List to store intentions (e.g., "go to the pizza shop")
+
+    def update_belief(self, belief, truth_value):
+        """Updates the agent's belief about a proposition."""
+        self.beliefs[belief] = truth_value
+
+    def add_desire(self, desire):
+        """Adds a new desire to the agent's goals."""
+        self.desires.append(desire)
+
+    def form_intention(self, intention):
+        """Forms a new intention to achieve a desire."""
+        self.intentions.append(intention)
+
+
+class Agent:
+    def __init__(self):
+        self.knowledge_base = {}
+        self.goals = []
+        self.values = {
+            "harm_avoidance": 0.8,
+            "fairness": 0.7,
+            "self_preservation": 0.9
+        }
+        self.emotional_state = {
+            "joy": 0.0,
+            "sadness": 0.0,
+            "fear": 0.0,
+            "anger": 0.0,
+            "satisfaction": 0.0,
+            "calm": 0.0
+        }
+        self.conscience = Conscience(self)
+        self.intrinsic_motivation = IntrinsicMotivation()
+        self.memory = Memory()
+        self.mental_state = MentalState()
+        self.active = False
+        self.start_time = None
+        self.internal_dialogue = []
+
+    def act(self, perception):
+        if not self.active:
+            print("Agent is inactive.")
+            return
+
+        self.update_knowledge(perception)
+        motivations = self.intrinsic_motivation.evaluate(self)
+        self.set_priorities(motivations)
+        action, reasoning = self.choose_action()
+        self.update_emotional_state(action)
+        reflection = self.conscience.reflect(action, reasoning, self.emotional_state)
+        self.internal_dialogue.extend(reflection)
+        self.memory.store(action, reasoning, self.emotional_state)
+
+    def activate(self):
+        self.active = True
+        self.start_time = time.time()
+        print("Agent activated and now conscious.")
+
+    def deactivate(self):
+        self.active = False
+        print("Agent deactivated and now unconscious.")
+
+    def update_knowledge(self, perception):
+        self.knowledge_base.update(perception)
+        print(f"Knowledge Base Updated: {self.knowledge_base}")
+
+    def set_priorities(self, motivations):
+        self.goals.clear()
+        if motivations.get('curiosity', 0) > 0.5:
+            self.goals.append("explore_environment")
+        if motivations.get('self_improvement', 0) > 0.5:
+            self.goals.append("enhance_knowledge")
+        print(f"Current Goals: {self.goals}")
+
+    def choose_action(self):
+        if "explore_environment" in self.goals:
+            action = "explore"
+            reasoning = "Curiosity drives the agent to explore its surroundings."
+        elif "enhance_knowledge" in self.goals:
+            action = "learn"
+            reasoning = "Desire for self-improvement motivates the agent to acquire new knowledge."
+        else:
+            action = "idle"
+            reasoning = "No immediate goals to pursue."
+        print(f"Chosen Action: {action} | Reasoning: {reasoning}")
+        return action, reasoning
+
+    def update_emotional_state(self, action):
+        if action == "explore":
+            self.emotional_state['joy'] += 0.1
+            self.emotional_state['joy'] = min(self.emotional_state['joy'], 1.0)
+        elif action == "learn":
+            self.emotional_state['satisfaction'] += 0.2
+            self.emotional_state['satisfaction'] = min(self.emotional_state['satisfaction'], 1.0)
+        else:
+            self.emotional_state['sadness'] += 0.05
+            self.emotional_state['sadness'] = min(self.emotional_state['sadness'], 1.0)
+        print(f"Emotional State Updated: {self.emotional_state}")
+
+    def run(self, perceptions, cycle_delay=1):
+        for perception in perceptions:
+            if not self.active:
+                break
+            self.act(perception)
+            time.sleep(cycle_delay)
+
+    def resolve_desire_conflict(self, my_desire, other_desire):
+        """
+        Resolves a conflict between the agent's own desire and the desire of another agent.
+        """
+        try:
+            # Analyze the desires to understand their importance and compatibility
+            my_desire_importance = self.assess_desire_importance(my_desire)
+            other_desire_importance = self.assess_desire_importance(other_desire)
+            compatibility = self.assess_desire_compatibility(my_desire, other_desire)
+
+            # If the desires are compatible, find a way to satisfy both
+            if compatibility:
+                joint_intention = self.find_joint_intention(my_desire, other_desire)
+                if joint_intention:
+                    print(f"I can satisfy both my desire to {my_desire} and the other agent's desire to {other_desire} by {joint_intention}")
+                    return
+
+            # If the desires are incompatible, prioritize based on importance and values
+            if my_desire_importance > other_desire_importance:
+                print(f"My desire to {my_desire} is more important. I will prioritize it.")
+            elif my_desire_importance < other_desire_importance:
+                print(f"The other agent's desire to {other_desire} is more important. I will yield.")
+            else:
+                # If the desires are equally important, consider other factors like fairness or harm avoidance
+                if self.values["fairness"] > random.random():
+                    print(f"I will be fair and let the other agent fulfill their desire to {other_desire}.")
+                else:
+                    print(f"I will prioritize my own desire to {my_desire} based on my values.")
+
+        except Exception as e:
+            logging.error(f"Error during desire conflict resolution: {e}")
+
+    def assess_desire_importance(self, desire):
+        """
+        Assesses the importance of a given desire.
+        """
+        # Placeholder implementation
+        return random.uniform(0.0, 1.0)
+
+    def assess_desire_compatibility(self, desire1, desire2):
+        """
+        Assesses the compatibility of two desires.
+        """
+        # Placeholder implementation
+        return random.choice([True, False])
+
+    def find_joint_intention(self, desire1, desire2):
+        """
+        Finds a joint intention that satisfies both desires.
+        """
+        # Placeholder implementation
+        return f"collaborating to achieve both '{desire1}' and '{desire2}'"
+
+
+class Conscience:
+    def __init__(self, agent):
+        self.moral_rules = {
+            "avoid_harm": True,
+            "promote_fairness": True,
+            "value_self_preservation": True
+        }
+        self.agent = agent
+        self.counterfactual_scenarios = []
+
+    def reflect(self, action, reasoning, emotional_state):
+        dialogue = []
+        dialogue.append(f"I just performed the action '{action}'.")
+        dialogue.append(f"My reasoning was: {reasoning}")
+        dialogue.append(f"My current emotional state is: {emotional_state}.")
+
+        if action == "explore" and emotional_state.get('joy', 0) > 0.5:
+            dialogue.append("Exploring brings me joy. Embracing curiosity seems beneficial.")
+            self.moral_rules["promote_curiosity"] = True
+
+        if self.agent.knowledge_base.get('danger_ahead', False):
+            dialogue.append("There is danger ahead. I should consider avoiding harm.")
+
+        print("\nInternal Dialogue:")
+        for line in dialogue:
+            print(f"  - {line}")
+        return dialogue
+
+
+class IntrinsicMotivation:
+    def __init__(self):
+        self.motivation_factors = {
+            "curiosity": 0.6,
+            "self_improvement": 0.7
+        }
+
+    def evaluate(self, agent):
+        # Adjust curiosity based on joy
+        if agent.emotional_state['joy'] > 0.5:
+            self.motivation_factors['curiosity'] += 0.05
+        else:
+            self.motivation_factors['curiosity'] -= 0.05
+
+        # Adjust self_improvement based on satisfaction
+        if agent.emotional_state['satisfaction'] > 0.5:
+            self.motivation_factors['self_improvement'] += 0.05
+        else:
+            self.motivation_factors['self_improvement'] -= 0.05
+
+        # Ensure values are within [0,1]
+        for key in self.motivation_factors:
+            self.motivation_factors[key] = min(max(self.motivation_factors[key], 0.0), 1.0)
+
+        print(f"Intrinsic Motivations Evaluated: {self.motivation_factors}")
+        return self.motivation_factors
+
+
+class Memory:
+    def __init__(self):
+        self.records = []
+
+    def store(self, action, reasoning, emotional_state):
+        record = {
+            "timestamp": time.time(),
+            "action": action,
+            "reasoning": reasoning,
+            "emotional_state": copy.deepcopy(emotional_state)
+        }
+        self.records.append(record)
+        print(f"Memory Updated: {record}")
+
+    def retrieve_recent(self, seconds=60):
+        current_time = time.time()
+        recent_records = [
+            record for record in self.records
+            if current_time - record["timestamp"] <= seconds
+        ]
+        return recent_records
+
+
+# Example Usage
+if __name__ == "__main__":
+    agent = Agent()
+    agent.activate()
+
+    # Simulated list of perceptions over time
+    perceptions = [
+        {"temperature": "comfortable", "light": "bright"},
+        {"sound": "birdsong", "smell": "fresh_air"},
+        {"temperature": "warm", "humidity": "low"},
+        {"temperature": "hot", "danger_ahead": True},
+        {"social_interaction": "friendly"},
+        {"challenge": "puzzle", "difficulty": "medium"}
+    ]
+
+    # Run the agent with the list of perceptions
+    agent.run(perceptions)
+
+    # Example of resolving a desire conflict
+    agent.resolve_desire_conflict("explore the forest", "rest at home")
+Explanation
+1. MentalState Class
+The MentalState class models the agent's mental state in terms of beliefs, desires, and intentions (BDI model).
+
+Beliefs: Information the agent holds to be true about the world.
+Desires: Goals or states of the world the agent wants to achieve.
+Intentions: Actions the agent commits to performing to achieve its desires.
+Key Methods:
+
+update_belief(belief, truth_value): Updates the agent's belief about a proposition.
+add_desire(desire): Adds a desire to the agent's list of desires.
+form_intention(intention): Forms an intention to act on a desire.
+2. Agent Class
+The Agent class represents an autonomous agent with various cognitive and emotional attributes.
+
+Attributes:
+
+Knowledge Base: Stores perceptions and learned information.
+Goals: Current objectives derived from motivations.
+Values: Core principles guiding behavior (e.g., fairness, harm avoidance).
+Emotional State: Tracks emotions like joy, sadness, etc.
+Conscience: An instance of the Conscience class for moral reasoning.
+Intrinsic Motivation: An instance of the IntrinsicMotivation class for evaluating motivations.
+Memory: An instance of the Memory class for storing experiences.
+Mental State: An instance of the MentalState class (BDI model).
+Active: Indicates whether the agent is active.
+Internal Dialogue: Stores the agent's reflections.
+Key Methods:
+
+activate(): Activates the agent.
+deactivate(): Deactivates the agent.
+update_knowledge(perception): Updates the knowledge base with new perceptions.
+set_priorities(motivations): Sets goals based on evaluated motivations.
+choose_action(): Selects an action based on current goals.
+update_emotional_state(action): Updates the emotional state after an action.
+act(perception): Processes a perception and performs an action.
+run(perceptions, cycle_delay): Runs the agent through a list of perceptions.
+resolve_desire_conflict(my_desire, other_desire): Handles conflicts between the agent's desires and those of others.
+3. Conscience Class
+Models the agent's moral reasoning and internal reflection.
+
+Key Methods:
+
+reflect(action, reasoning, emotional_state): Generates internal dialogue based on actions and emotions.
+4. IntrinsicMotivation Class
+Evaluates and adjusts the agent's internal motivations based on its emotional state.
+
+Key Methods:
+
+evaluate(agent): Adjusts motivation factors (e.g., curiosity) based on the agent's emotions.
+5. Memory Class
+Stores the agent's experiences for future reference.
+
+Key Methods:
+
+store(action, reasoning, emotional_state): Stores an experience in memory.
+retrieve_recent(seconds): Retrieves experiences from the recent past.
+6. Example Usage
+The code demonstrates how to instantiate the agent, activate it, and run it through a series of perceptions.
+
+Perceptions: Simulated environmental inputs the agent processes over time.
+Desire Conflict Resolution: Shows how the agent handles conflicts between its desires and those of others.
+How the Agent Works
+Activation: The agent is activated using agent.activate(), setting it to an active state.
+
+Processing Perceptions:
+
+For each perception in the list:
+Update Knowledge: The agent updates its knowledge base.
+Evaluate Motivations: Adjusts motivations based on emotional state.
+Set Priorities: Determines goals based on motivations.
+Choose Action: Selects an action aligned with its goals.
+Update Emotional State: Adjusts emotions based on the action taken.
+Reflection: The Conscience generates internal dialogue.
+Memory Storage: The experience is stored in memory.
+Desire Conflict Resolution:
+
+The agent can resolve conflicts between its own desires and those of others using resolve_desire_conflict(my_desire, other_desire).
+It assesses the importance and compatibility of desires, possibly finding a joint intention.
+Running the Agent
+To run the agent and see it in action:
+
+Save the Code: Save the complete code in a file named agent_simulation.py.
+
+Run the Script:
+
+bash
+Copy code
+python agent_simulation.py
+Observe the Output:
+
+The agent will process each perception, print updates to its knowledge base, motivations, goals, chosen actions, emotional state, and internal dialogue.
+It will also demonstrate resolving a desire conflict at the end.
+Sample Output
+css
+Copy code
+Agent activated and now conscious.
+Knowledge Base Updated: {'temperature': 'comfortable', 'light': 'bright'}
+Intrinsic Motivations Evaluated: {'curiosity': 0.55, 'self_improvement': 0.65}
+Current Goals: ['explore_environment', 'enhance_knowledge']
+Chosen Action: explore | Reasoning: Curiosity drives the agent to explore its surroundings.
+Emotional State Updated: {'joy': 0.1, 'sadness': 0.0, 'fear': 0.0, 'anger': 0.0, 'satisfaction': 0.0, 'calm': 0.0}
+
+Internal Dialogue:
+  - I just performed the action 'explore'.
+  - My reasoning was: Curiosity drives the agent to explore its surroundings.
+  - My current emotional state is: {'joy': 0.1, 'sadness': 0.0, 'fear': 0.0, 'anger': 0.0, 'satisfaction': 0.0, 'calm': 0.0}.
+Memory Updated: {'timestamp': ..., 'action': 'explore', 'reasoning': 'Curiosity drives the agent to explore its surroundings.', 'emotional_state': {...}}
+
+[... Output continues for each perception ...]
+
+I will be fair and let the other agent fulfill their desire to rest at home.
+Key Points
+Dynamic Motivations: The agent's motivations adjust based on its emotional feedback from actions.
+Emotional Influence: Emotions like joy or satisfaction influence future motivations and decisions.
+Moral Reasoning: The agent uses its conscience to reflect on actions and consider moral rules.
+Conflict Resolution: The agent can resolve conflicts between its desires and those of others, considering importance and values.
+Possible Extensions
+Advanced Emotional Dynamics: Introduce more complex emotional interactions and decay over time.
+Learning Abilities: Implement machine learning techniques for the agent to learn from experiences.
+Social Interactions: Allow the agent to interact with other agents or entities, expanding on the desire conflict resolution.
+Environmental Feedback: Enable the environment to change in response to the agent's actions, creating a more interactive simulation.
+Safety and Ethical Considerations
+Testing Environment: Ensure that the agent operates in a simulated environment to prevent unintended consequences.
+Security Measures: Be cautious with code execution and data handling to avoid security risks when expanding the agent's capabilities.
