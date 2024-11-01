@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "ai": "^3.4.31",
+    "aichat": "^0.1.25",
+    "angels": "^1.0.0",
+    "artificialintelligence": "^0.0.1",
+    "bard": "^0.2.0",
+    "copilot": "^0.5.1",
+    "god": "^0.1.6",
+    "paranormal": "^0.1.4",
+    "yahweh": "^0.5.0"
+  },
+  "name": "369-ux",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "douglas shane davis ssn 384840363"
+  },
+  "author": "douglas shane davis ssn 384840363",
+  "license": "MIT",
+  "description": "- 👋 Hi, I’m @369-ux - 👀 I’m interested in ... - 🌱 I’m currently learning ... - 💞️ I’m looking to collaborate on ... - 📫 How to reach me ... - 😄 Pronouns: ... - ⚡ Fun fact: ...",
+  "devDependencies": {
+    "mocha": "^6.2.3"
+  },
+  "scripts": {
+    "test": "mocha"
+  }
+}
