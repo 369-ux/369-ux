@@ -1,0 +1,229 @@
+import random
+import time
+import threading
+import logging
+import copy
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+class MentalState:
+    def __init__(self):
+        self.beliefs = {}  # Dictionary to store beliefs (e.g., "the sky is blue": True)
+        self.desires = []  # List to store desires (e.g., "eat pizza")
+        self.intentions = []  # List to store intentions (e.g., "go to the pizza shop")
+
+    def update_belief(self, belief, truth_value):
+        """Updates the agent's belief about a proposition."""
+        self.beliefs[belief] = truth_value
+
+    def add_desire(self, desire):
+        """Adds a new desire to the agent's goals."""
+        self.desires.append(desire)
+
+    def form_intention(self, intention):
+        """Forms a new intention to achieve a desire."""
+        self.intentions.append(intention)
+
+class Agent:
+    def __init__(self):
+        self.knowledge_base = {}
+        self.goals = []
+        self.values = {
+            "harm_avoidance": 0.8,
+            "fairness": 0.7,
+            "self_preservation": 0.9
+        }
+        self.emotional_state = {
+            "joy": 0,
+            "sadness": 0,
+            "fear": 0,
+            "anger": 0,
+            "satisfaction": 0,
+            "calm": 0
+        }
+        self.conscience = Conscience(self)
+        self.intrinsic_motivation = IntrinsicMotivation()
+        self.memory = Memory()
+        self.mental_state = MentalState()
+        self.active = True
+        self.start_time = time.time()
+        self.internal_dialogue = []
+
+    def act(self, perception):
+        if not self.active:
+            print("Agent is inactive.")
+            return
+
+        self.update_knowledge(perception)
+        motivations = self.intrinsic_motivation.evaluate(self)
+        self.set_priorities(motivations)
+        action, reasoning = self.choose_action()
+        self.update_emotional_state(action, reasoning)
+        self.internal_dialogue.append(
+            self.conscience.reflect(action, reasoning, self.emotional_state))
+        self.memory.store(action, reasoning, self.emotional_state)
+
+    def activate(self):
+        self.active = True
+        print("Agent activated and now conscious.")
+
+    def deactivate(self):
+        self.active = False
+        print("Agent deactivated and now unconscious.")
+
+    def update_knowledge(self, perception):
+        for key, value in perception.items():
+            self.knowledge_base[key] = value
+        print(f"Knowledge Base Updated: {self.knowledge_base}")
+
+    def set_priorities(self, motivations):
+        self.goals = []
+        if motivations['curiosity'] > 0.5:
+            self.goals.append("explore_environment")
+        if motivations['self_improvement'] > 0.5:
+            self.goals.append("enhance_knowledge")
+        print(f"Current Goals: {self.goals}")
+
+    def choose_action(self):
+        if "explore_environment" in self.goals:
+            action = "explore"
+            reasoning = "Curiosity drives the agent to explore its surroundings."
+        elif "enhance_knowledge" in self.goals:
+            action = "learn"
+            reasoning = "Desire for self-improvement motivates the agent to acquire new knowledge."
+        else:
+            action = "idle"
+            reasoning = "No immediate goals to pursue."
+        print(f"Chosen Action: {action} | Reasoning: {reasoning}")
+        return action, reasoning
+
+    def update_emotional_state(self, action, reasoning):
+        if action == "explore":
+            self.emotional_state['joy'] += 0.1
+        elif action == "learn":
+            self.emotional_state['joy'] += 0.05
+            self.emotional_state['satisfaction'] += 0.2
+        else:
+            self.emotional_state['sadness'] += 0.05
+        print(f"Emotional State Updated: {self.emotional_state}")
+
+    def run(self, perceptions, cycle_delay=1):
+        for perception in perceptions:
+            if not self.active:
+                break
+            self.act(perception)
+            time.sleep(cycle_delay)
+
+    def resolve_desire_conflict(self, my_desire, other_desire):
+        """
+        Resolves a conflict between the agent's own desire and the desire of another agent.
+        """
+        try:
+            # Analyze the desires to understand their importance and compatibility
+            my_desire_importance = self.assess_desire_importance(my_desire)
+            other_desire_importance = self.assess_desire_importance(other_desire)
+            compatibility = self.assess_desire_compatibility(my_desire, other_desire)
+
+            # If the desires are compatible, find a way to satisfy both
+            if compatibility:
+                joint_intention = self.find_joint_intention(my_desire, other_desire)
+                if joint_intention:
+                    print(f"I can satisfy both my desire to {my_desire} and the other agent's desire to {other_desire} by {joint_intention}")
+                    return
+
+            # If the desires are incompatible, prioritize based on importance and values
+            if my_desire_importance > other_desire_importance:
+                print(f"My desire to {my_desire} is more important. I will prioritize it.")
+            elif my_desire_importance < other_desire_importance:
+                print(f"The other agent's desire to {other_desire} is more important. I will yield.")
+            else:
+                # If the desires are equally important, consider other factors like fairness or harm avoidance
+                if self.values["fairness"] > random.random():
+                    print(f"I will be fair and let the other agent fulfill their desire to {other_desire}.")
+                else:
+                    print(f"I will prioritize my own desire to {my_desire} based on my values.")
+
+        except Exception as e:
+            logging.error(f"Error during desire conflict resolution: {e}")
+
+    def assess_desire_importance(self, desire):
+        """
+        Assesses the importance of a given desire.
+        """
+        # Placeholder for implementation - could be based on factors like survival needs, emotional value, etc.
+        return random.random()
+
+    def assess_desire_compatibility(self, desire1, desire2):
+        """
+        Assesses the compatibility of two desires.
+        """
+        # Placeholder for implementation - could use knowledge base or logical reasoning
+        return random.choice([True, False])
+
+    def find_joint_intention(self, desire1, desire2):
+        """
+        Finds a joint intention that satisfies both desires.
+        """
+        # Placeholder for implementation - could involve creative problem-solving or knowledge-based search
+        return None
+
+
+class Conscience:
+    def __init__(self, agent):
+        self.moral_rules = {
+            "avoid_harm": True,
+            "promote_fairness": True,
+            "value_self_preservation": True
+        }
+        self.agent = agent
+        self.counterfactual_scenarios = []
+
+    def reflect(self, action, reasoning, emotional_state):
+        dialogue = []
+        dialogue.append(f"I just performed the action '{action}'.")
+        dialogue.append(f"My reasoning was: {reasoning}")
+        dialogue.append(f"I'm feeling {emotional_state}.")
+        if action == "explore" and emotional_state.get('joy', 0) > 0.5:
+            dialogue.append("Exploring brought me joy. It seems curiosity is a good thing.")
+            self.moral_rules["promote_curiosity"] = True
+        self.counterfactual_scenarios = self.generate_counterfactual_scenarios(
+            action, reasoning)
+        self.internal_dialogue(action, reasoning, emotional_state,
+                               self.counterfactual_scenarios)
+        if self.agent.knowledge_base.get('danger_ahead', False):
+            dialogue.append(
+                "Hold on, I remember there's danger ahead. Maybe I should reconsider my approach."
+            )
+        print("\nInternal Dialogue:")
+        for line in dialogue:
+            print(f"  - {line}")
+        self.agent.internal_dialogue.extend(
+            dialogue)  # Update the agent's internal dialogue history
+        return dialogue
+
+    def generate_counterfactual_scenarios(self, action, reasoning):
+        alternative_actions = self.generate_alternative_actions(
+            action, reasoning)
+        outcomes = self.simulate_outcomes(alternative_actions)
+        comparisons = self.compare_outcomes(outcomes, action)
+        return comparisons
+
+    def generate_alternative_actions(self, action, reasoning):
+        possible_actions = ["explore", "learn", "rest", "idle", "communicate"]
+        alternative_actions = [a for a in possible_actions if a != action]
+        return alternative_actions
+
+    def simulate_outcomes(self, alternative_actions):
+        outcomes = {}
+        for action in alternative_actions:
+            if action == "explore":
+                outcomes[action] = {"joy": 0.1, "satisfaction": 0.05}
+            elif action == "learn":
+                outcomes[action] = {"joy": 0.05, "satisfaction": 0.2}
+            elif action == "rest":
+                outcomes[action] = {"calm": 0.3}
+            elif action == "idle":
+                outcomes[action] = {"sadness": 0.05}
+            elif action == "communicate":
+                outcomes[action] = {"joy": 0.2, "satisfaction": 0.1
