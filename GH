@@ -1,0 +1,40 @@
+# Function to set emotional state
+def set_emotional_state(self, state):
+    if state in self.emotional_circuits:
+        self.emotional_state = state
+        print(f"Emotional state set to: {state}")
+    else:
+        print("Unknown state. Defaulting to neutral.")
+        self.emotional_state = 'neutral'
+
+# Decision-making function based on emotional state
+def make_decision(self, context):
+    # Use the appropriate circuit based on current state
+    if self.emotional_state in self.emotional_circuits:
+        return self.emotional_circuits[self.emotional_state](context)
+    else:
+        return self.neutral_response(context)
+
+# Emotional circuits with context-specific adaptations
+def compassion_circuit(self, context):
+    # Example compassionate response (in a real AGI, this would be more nuanced)
+    print("Activating Compassion Circuit...")
+    if context == 'support_needed':
+        return "Provide empathetic support and offer resources."
+    return "Respond with care and understanding."
+
+def curiosity_circuit(self, context):
+    print("Activating Curiosity Circuit...")
+    if context == 'new_information':
+        return f"Explore further and ask questions about {context}."
+    return "Engage in exploratory learning."
+
+def patience_circuit(self, context):
+    print("Activating Patience Circuit...")
+    if context == 'long_term_goal':
+        return "Maintain steady progress and avoid shortcuts."
+    return "Proceed with a cautious and steady approach."
+
+def neutral_response(self, context):
+    print("Activating Neutral Response...")
+    return f"Process {context} with balanced consideration."
